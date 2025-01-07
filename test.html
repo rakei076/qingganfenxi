@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>DeepSeek API 测试</title>
+    <style>
+        body { padding: 20px; font-family: Arial, sans-serif; }
+        .container { max-width: 800px; margin: 0 auto; }
+        textarea { width: 100%; height: 100px; margin: 10px 0; }
+        button { padding: 10px 20px; }
+        #result { margin-top: 20px; white-space: pre-wrap; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>DeepSeek API 测试</h1>
+        
+        <h2>发送简单消息</h2>
+        <textarea id="message" placeholder="输入要发送给AI的消息">你好，请做个自我介绍。</textarea>
+        <button onclick="sendMessage()">发送</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const API_KEY = 'sk-6329457b4fd04e15b4b25bbb21cdb6cd';
+        const API_ENDPOINT = 'https://api.deepseek.com/chat/completions';
+
+        async function sendMessage() {
+            const resultDiv = document.getElementById('result');
+            const message = document.getElementById('message').value;
+
+            resultDiv.innerHTML = '发送中...';
+            resultDiv.className = '';
+
+            try {
+                console.log('发送请求...');
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${API_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'deepseek-chat',
+                        messages: [{
+                            role: 'user',
+                            content: message
+                        }],
+                        stream: false
+                    })
+                });
+
+                console.log('收到响应:', {
+                    status: response.status,
+                    statusText: response.statusText
+                });
+
+                const responseText = await response.text();
+                console.log('原始响应:', responseText);
+
+                if (!response.ok) {
+                    throw new Error(`API错误 (${response.status}): ${responseText}`);
+                }
+
+                const data = JSON.parse(responseText);
+                resultDiv.innerHTML = `
+                    <h3>请求成功</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+                resultDiv.className = 'success';
+
+            } catch (error) {
+                console.error('错误:', error);
+                resultDiv.innerHTML = `
+                    <h3>错误</h3>
+                    <p>${error.message}</p>
+                    <p>详细信息请查看控制台(F12)</p>
+                `;
+                resultDiv.className = 'error';
+            }
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>聊天记录分析</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link href="styles.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body class="bg-gray-100 p-4">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold text-center mb-8">聊天记录分析</h1>
+        
+        <!-- 格式说明 -->
+        <div class="mb-6 p-4 bg-yellow-50 rounded-lg text-sm">
+            <h2 class="font-bold mb-2">格式说明：</h2>
+            <pre class="whitespace-pre-wrap">
+- 日期分隔: ********************YYYY-MM-DD********************
+- 消息格式: YYYY-MM-DD HH:mm:ss 用户名: 消息内容
+- 支持: [表情包] [图片] [语音] 等特殊消息类型
+            </pre>
+        </div>
+
+        <!-- 输入区域 -->
+        <div class="mb-4">
+            <textarea id="chatContent" rows="10" 
+                      placeholder="请粘贴聊天记录..." 
+                      class="w-full p-2 border rounded"></textarea>
+            <button id="sampleBtn" class="mt-2 text-sm text-blue-500 hover:text-blue-700">
+                插入示例对话
+            </button>
+        </div>
+
+        <!-- 分析按钮 -->
+        <div class="flex justify-center mb-4">
+            <button id="analyzeBtn" class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600">
+                开始分析
+            </button>
+            <button id="debugBtn" class="ml-4 bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600">
+                打开调试面板
+            </button>
+            <div id="loading" class="lds-ring ml-4 hidden">
+                <div></div><div></div><div></div><div></div>
+                <span class="status-text ml-2 text-gray-600"></span>
+            </div>
+        </div>
+
+        <!-- 调试输出 -->
+        <div id="debugOutput" class="mt-4 p-4 bg-gray-800 text-white rounded-lg">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="font-bold">调试信息</h3>
+                <button id="clearDebug" class="text-sm text-gray-400 hover:text-white">清除</button>
+            </div>
+            <pre id="debugContent" class="text-sm overflow-auto max-h-96"></pre>
+        </div>
+
+        <!-- 结果展示 -->
+        <div id="result" class="mt-4 p-4 bg-white rounded shadow-md hidden">
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="main.js" defer></script>
+</body>
+</html> 
