@@ -76,8 +76,6 @@ class ChatAnalyzer {
 
     async getAIAnalysis(messages) {
         try {
-            this.log('准备发送API请求');
-            
             const requestData = {
                 model: "deepseek-chat",
                 messages: [{
@@ -162,12 +160,6 @@ class ChatAnalyzer {
                 frequency_penalty: 0.1
             };
 
-            this.log('发送请求数据:', JSON.stringify(requestData, null, 2));
-
-            // 添加加载状态提示
-            this.log('正在等待 AI 响应...');
-            const startTime = Date.now();
-            
             const response = await fetch(this.apiEndpoint, {
                 method: 'POST',
                 headers: {
@@ -178,21 +170,21 @@ class ChatAnalyzer {
                 body: JSON.stringify(requestData)
             });
 
-            // 记录响应时间
-            const endTime = Date.now();
-            this.log(`AI 响应耗时: ${endTime - startTime}ms`);
-
             const responseText = await response.text();
-            this.log('API原始响应:', responseText);
+            
+            // 在调试面板显示 AI 返回数据
+            if (this.debugOutput) {
+                const time = new Date().toLocaleTimeString();
+                this.debugOutput.innerHTML = `[${time}] AI 返回数据:\n${responseText}\n`;
+                this.debugOutput.scrollTop = this.debugOutput.scrollHeight;
+            }
 
             if (!response.ok) {
                 throw new Error(`API错误 (${response.status}): ${responseText}`);
             }
 
-            const data = JSON.parse(responseText);
-            return data;
+            return JSON.parse(responseText);
         } catch (error) {
-            this.log('API调用错误:', error);
             throw error;
         }
     }
@@ -284,60 +276,44 @@ class ChatAnalyzer {
         
         // 生成情感计算详情的 HTML
         const emotionDetails = `
-            <div class="p-4 bg-white rounded-lg shadow">
-                <h3 class="font-bold mb-2">情感计算详情 3.0</h3>
-                <div class="grid grid-cols-3 gap-4">
+            <div class="p-4 bg-white rounded-lg shadow mb-4">
+                <h3 class="font-bold mb-2">情感计算详情 4.0</h3>
+                <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <h4 class="font-medium">基础情感维度 (BE)</h4>
+                        <h4 class="font-medium">情感维度 (60%)</h4>
                         <ul class="list-none space-y-1">
-                            <li>情感评分 (ES): ${emotionCalc.dimensions.basicEmotion.ES}/100</li>
-                            <li>情感强度 (EI): ${emotionCalc.dimensions.basicEmotion.EI}/5</li>
-                            <li>互动热度 (EH): ${emotionCalc.dimensions.basicEmotion.EH}/5</li>
-                            <li>浪漫张力 (RT): ${emotionCalc.dimensions.basicEmotion.RT}/10</li>
-                            <li class="mt-2 font-medium">维度得分: ${emotionCalc.scores.BE.toFixed(2)}</li>
+                            <li>情感评分: ${emotionCalc.dimensions.emotion.ES}/100 (权重40%)</li>
+                            <li>情感强度: ${emotionCalc.dimensions.emotion.EI}/5 (权重30%)</li>
+                            <li>浪漫可能性: ${emotionCalc.dimensions.emotion.RP}/5 (权重30%)</li>
+                            <li class="mt-2 font-medium">维度得分: ${emotionCalc.dimensions.emotion.score.toFixed(2)}</li>
                         </ul>
                     </div>
                     <div>
-                        <h4 class="font-medium">社交关系维度 (SR)</h4>
+                        <h4 class="font-medium">关系维度 (40%)</h4>
                         <ul class="list-none space-y-1">
-                            <li>关系亲密度 (IR): ${emotionCalc.dimensions.socialRelation.IR}/5</li>
-                            <li>浪漫可能性 (RP): ${emotionCalc.dimensions.socialRelation.RP}/5</li>
-                            <li class="mt-2 font-medium">维度得分: ${emotionCalc.scores.SR.toFixed(2)}</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 class="font-medium">话题维度 (TD)</h4>
-                        <ul class="list-none space-y-1">
-                            <li>话题深度 (TD): ${emotionCalc.dimensions.topicDimension.TD}/5</li>
-                            <li>话题参与度 (TP): ${emotionCalc.dimensions.topicDimension.TP}/5</li>
-                            <li class="mt-2 font-medium">维度得分: ${emotionCalc.scores.TD.toFixed(2)}</li>
+                            <li>关系亲密度: ${emotionCalc.dimensions.relation.IR}/5 (权重50%)</li>
+                            <li>话题深度: ${emotionCalc.dimensions.relation.TD}/5 (权重30%)</li>
+                            <li>话题参与度: ${emotionCalc.dimensions.relation.TP}/5 (权重20%)</li>
+                            <li class="mt-2 font-medium">维度得分: ${emotionCalc.dimensions.relation.score.toFixed(2)}</li>
                         </ul>
                     </div>
                 </div>
                 <div class="mt-4">
                     <h4 class="font-medium">计算过程</h4>
                     <pre class="text-sm bg-gray-50 p-2 rounded overflow-x-auto">
-1. 维度得分计算:
-BE = (ES/100 × 50) + (EI/5 × 20) + (EH/5 × 20) + (RT/10 × 10)
-   = (${emotionCalc.dimensions.basicEmotion.ES}/100 × 50) + (${emotionCalc.dimensions.basicEmotion.EI}/5 × 20) + (${emotionCalc.dimensions.basicEmotion.EH}/5 × 20) + (${emotionCalc.dimensions.basicEmotion.RT}/10 × 10)
-   = ${emotionCalc.scores.BE.toFixed(2)}
+1. 情感维度得分 (60%权重):
+得分 = (情感评分/100 × 40) + (情感强度/5 × 30) + (浪漫可能性/5 × 30)
+    = (${emotionCalc.dimensions.emotion.ES}/100 × 40) + (${emotionCalc.dimensions.emotion.EI}/5 × 30) + (${emotionCalc.dimensions.emotion.RP}/5 × 30)
+    = ${emotionCalc.dimensions.emotion.score.toFixed(2)}
 
-SR = (IR/5 × 50) + (RP/5 × 50)
-   = (${emotionCalc.dimensions.socialRelation.IR}/5 × 50) + (${emotionCalc.dimensions.socialRelation.RP}/5 × 50)
-   = ${emotionCalc.scores.SR.toFixed(2)}
-
-TD = (TD/5 × 50) + (TP/5 × 50)
-   = (${emotionCalc.dimensions.topicDimension.TD}/5 × 50) + (${emotionCalc.dimensions.topicDimension.TP}/5 × 50)
-   = ${emotionCalc.scores.TD.toFixed(2)}
-
-2. 调节系数:
-AF = 1 + (RT × 0.02)
-   = 1 + (${emotionCalc.dimensions.basicEmotion.RT} × 0.02)
-   = ${emotionCalc.adjustmentFactor.toFixed(3)}
+2. 关系维度得分 (40%权重):
+得分 = (关系亲密度/5 × 50) + (话题深度/5 × 30) + (话题参与度/5 × 20)
+    = (${emotionCalc.dimensions.relation.IR}/5 × 50) + (${emotionCalc.dimensions.relation.TD}/5 × 30) + (${emotionCalc.dimensions.relation.TP}/5 × 20)
+    = ${emotionCalc.dimensions.relation.score.toFixed(2)}
 
 3. 最终得分:
-Score = (BE × 0.4 + SR × 0.3 + TD × 0.3) × AF
-      = (${emotionCalc.scores.BE.toFixed(2)} × 0.4 + ${emotionCalc.scores.SR.toFixed(2)} × 0.3 + ${emotionCalc.scores.TD.toFixed(2)} × 0.3) × ${emotionCalc.adjustmentFactor.toFixed(3)}
+Score = 情感维度 × 0.6 + 关系维度 × 0.4
+      = ${emotionCalc.dimensions.emotion.score.toFixed(2)} × 0.6 + ${emotionCalc.dimensions.relation.score.toFixed(2)} × 0.4
       = ${emotionCalc.totalScore}
                     </pre>
                 </div>
@@ -354,16 +330,12 @@ Score = (BE × 0.4 + SR × 0.3 + TD × 0.3) × AF
             改善建议: content.match(/\/\/\/改善建议\/\/\/([\s\S]*?)(?=\/\/\/量化评分|$)/)?.[1]?.trim() || '未获取到分析结果'
         };
 
-        // 调试输出完整内容
-        this.log('AI 返回的完整内容:', content);
-        this.log('解析到的部分:', sections);
-
         // 生成各部分的 HTML
         const sectionsHtml = Object.entries(sections).map(([key, value]) => {
             if (!value || value === '未获取到分析结果') return '';
             
             return `
-                <div class="p-4 bg-white rounded-lg shadow">
+                <div class="p-4 bg-white rounded-lg shadow mb-4">
                     <h3 class="font-bold mb-2">${key}</h3>
                     <div class="prose">
                         ${value.split('\n').map(line => {
@@ -374,19 +346,10 @@ Score = (BE × 0.4 + SR × 0.3 + TD × 0.3) × AF
                             const [title, ...contentParts] = parts;
                             const content = contentParts.join(':').trim();
                             
-                            // 为评分添加总分说明
-                            let displayContent = content;
-                            if (title.trim().includes('情感强度') || 
-                                title.trim().includes('互动热度') || 
-                                title.trim().includes('关系亲密度') ||
-                                title.trim().includes('话题深度')) {
-                                displayContent = `${content} (满分5)`;
-                            }
-                            
                             return `
                                 <div class="mb-2">
                                     <span class="font-medium">${title.trim()}:</span>
-                                    <span class="text-gray-700">${displayContent}</span>
+                                    <span class="text-gray-700">${content}</span>
                                 </div>
                             `;
                         }).join('')}
@@ -397,10 +360,9 @@ Score = (BE × 0.4 + SR × 0.3 + TD × 0.3) × AF
 
         // 返回完整的 HTML
         return `
-            <h2 class="text-xl font-bold mb-4">分析结果</h2>
             <div class="space-y-4">
                 <!-- 统计数据和评分 -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div class="p-4 bg-blue-50 rounded-lg">
                         <h3 class="font-bold mb-2">统计数据</h3>
                         <p>总消息数: ${stats.totalMessages}</p>
@@ -449,79 +411,55 @@ Score = (BE × 0.4 + SR × 0.3 + TD × 0.3) × AF
 
     // 修改情感得分计算方法
     calculateEmotionScore(content) {
-        // 调试输出
-        this.log('开始提取情感分数，原始内容:', content);
+        // 提取基础分数
+        const scores = {
+            // 情感维度 (60%)
+            ES: this.extractNumberFromText(content, '情感评分: ', 100),  // 情感评分
+            EI: this.extractNumberFromText(content, '情感强度: ', 5),    // 情感强度
+            RP: this.extractNumberFromText(content, '浪漫可能性: ', 5),  // 浪漫可能性
 
-        // 更新提取模式以匹配 AI 返回的格式
-        const basicEmotion = {
-            ES: this.extractNumberFromText(content, '情感评分: ', 100),
-            EI: this.extractNumberFromText(content, '情感强度: ', 5),
-            EH: this.extractNumberFromText(content, '互动热度: ', 5),
-            RT: this.extractNumberFromText(content, '浪漫/暧昧张力: ', 10)
+            // 关系维度 (40%)
+            IR: this.extractNumberFromText(content, '关系亲密度: ', 5),  // 关系亲密度
+            TD: this.extractNumberFromText(content, '话题深度: ', 5),    // 话题深度
+            TP: this.extractTopicParticipation(content)                 // 话题参与度
         };
 
-        const socialRelation = {
-            IR: this.extractNumberFromText(content, '关系亲密度: ', 5),
-            RP: this.extractNumberFromText(content, '浪漫可能性: ', 5)
-        };
+        // 计算情感维度得分 (满分100)
+        const emotionScore = (
+            (scores.ES / 100 * 40) +  // 情感评分占40%
+            (scores.EI / 5 * 30) +    // 情感强度占30%
+            (scores.RP / 5 * 30)      // 浪漫可能性占30%
+        );
 
-        const topicDimension = {
-            TD: this.extractNumberFromText(content, '话题深度: ', 5),
-            TP: this.extractTopicParticipation(content)
-        };
+        // 计算关系维度得分 (满分100)
+        const relationScore = (
+            (scores.IR / 5 * 50) +    // 关系亲密度占50%
+            (scores.TD / 5 * 30) +    // 话题深度占30%
+            (scores.TP / 5 * 20)      // 话题参与度占20%
+        );
 
-        // 调试输出提取的分数
-        this.log('提取的分数:', {
-            basicEmotion,
-            socialRelation,
-            topicDimension
-        });
-
-        // 修改计算方式，设置基准分
-        const BE = Math.max(20, (
-            (basicEmotion.ES / 100) * 50 +  // ES 贡献最多 50 分
-            (basicEmotion.EI / 5) * 20 +    // EI 贡献最多 20 分
-            (basicEmotion.EH / 5) * 20 +    // EH 贡献最多 20 分
-            (basicEmotion.RT / 10) * 10     // RT 贡献最多 10 分
-        ));
-
-        const SR = Math.max(20, (
-            (socialRelation.IR / 5) * 50 +  // IR 贡献最多 50 分
-            (socialRelation.RP / 5) * 50    // RP 贡献最多 50 分
-        ));
-
-        const TD = Math.max(20, (
-            (topicDimension.TD / 5) * 50 +  // TD 贡献最多 50 分
-            (topicDimension.TP / 5) * 50    // TP 贡献最多 50 分
-        ));
-
-        // 调节系数范围调整
-        const adjustmentFactor = 1 + (basicEmotion.RT * 0.02);
-
-        // 计算最终得分，设置最低基准分
-        const baseScore = (BE * 0.4 + SR * 0.3 + TD * 0.3);
-        const finalScore = Math.min(100, Math.max(20,
-            baseScore * adjustmentFactor
-        ));
+        // 计算最终得分
+        const finalScore = Math.round(
+            emotionScore * 0.6 +      // 情感维度占60%
+            relationScore * 0.4        // 关系维度占40%
+        );
 
         return {
-            totalScore: Math.round(finalScore),
+            totalScore: Math.min(100, finalScore),  // 只限制最高分为100
             dimensions: {
-                basicEmotion,
-                socialRelation,
-                topicDimension
-            },
-            weights: {
-                BE: 0.4,
-                SR: 0.3,
-                TD: 0.3
-            },
-            scores: {
-                BE,
-                SR,
-                TD
-            },
-            adjustmentFactor
+                emotion: {
+                    ES: scores.ES,
+                    EI: scores.EI,
+                    RP: scores.RP,
+                    score: emotionScore
+                },
+                relation: {
+                    IR: scores.IR,
+                    TD: scores.TD,
+                    TP: scores.TP,
+                    score: relationScore
+                }
+            }
         };
     }
 
