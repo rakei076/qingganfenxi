@@ -282,9 +282,9 @@ class ChatAnalyzer {
                     <div>
                         <h4 class="font-medium">情感维度 (60%)</h4>
                         <ul class="list-none space-y-1">
-                            <li>情感评分: ${emotionCalc.dimensions.emotion.ES}/100 (权重40%)</li>
-                            <li>情感强度: ${emotionCalc.dimensions.emotion.EI}/5 (权重30%)</li>
-                            <li>浪漫可能性: ${emotionCalc.dimensions.emotion.RP}/5 (权重30%)</li>
+                            <li>情感评分: ${emotionCalc.dimensions.emotion.ES}/100 (权重60%)</li>
+                            <li>情感强度: ${emotionCalc.dimensions.emotion.EI}/5 (参考指标)</li>
+                            <li>浪漫可能性: ${emotionCalc.dimensions.emotion.RP}/5 (权重40%)</li>
                             <li class="mt-2 font-medium">维度得分: ${emotionCalc.dimensions.emotion.score.toFixed(2)}</li>
                         </ul>
                     </div>
@@ -302,8 +302,8 @@ class ChatAnalyzer {
                     <h4 class="font-medium">计算过程</h4>
                     <pre class="text-sm bg-gray-50 p-2 rounded overflow-x-auto">
 1. 情感维度得分 (60%权重):
-得分 = (情感评分/100 × 40) + (情感强度/5 × 30) + (浪漫可能性/5 × 30)
-    = (${emotionCalc.dimensions.emotion.ES}/100 × 40) + (${emotionCalc.dimensions.emotion.EI}/5 × 30) + (${emotionCalc.dimensions.emotion.RP}/5 × 30)
+得分 = (情感评分/100 × 60) + (浪漫可能性/5 × 40)
+    = (${emotionCalc.dimensions.emotion.ES}/100 × 60) + (${emotionCalc.dimensions.emotion.RP}/5 × 40)
     = ${emotionCalc.dimensions.emotion.score.toFixed(2)}
 
 2. 关系维度得分 (40%权重):
@@ -415,7 +415,7 @@ Score = 情感维度 × 0.6 + 关系维度 × 0.4
         const scores = {
             // 情感维度 (60%)
             ES: this.extractNumberFromText(content, '情感评分: ', 100),  // 情感评分
-            EI: this.extractNumberFromText(content, '情感强度: ', 5),    // 情感强度
+            EI: this.extractNumberFromText(content, '情感强度: ', 5),    // 情感强度(仅作参考)
             RP: this.extractNumberFromText(content, '浪漫可能性: ', 5),  // 浪漫可能性
 
             // 关系维度 (40%)
@@ -426,9 +426,8 @@ Score = 情感维度 × 0.6 + 关系维度 × 0.4
 
         // 计算情感维度得分 (满分100)
         const emotionScore = (
-            (scores.ES / 100 * 40) +  // 情感评分占40%
-            (scores.EI / 5 * 30) +    // 情感强度占30%
-            (scores.RP / 5 * 30)      // 浪漫可能性占30%
+            (scores.ES / 100 * 60) +  // 情感评分占60%
+            (scores.RP / 5 * 40)      // 浪漫可能性占40%
         );
 
         // 计算关系维度得分 (满分100)
@@ -449,7 +448,7 @@ Score = 情感维度 × 0.6 + 关系维度 × 0.4
             dimensions: {
                 emotion: {
                     ES: scores.ES,
-                    EI: scores.EI,
+                    EI: scores.EI,     // 保留但不计入得分
                     RP: scores.RP,
                     score: emotionScore
                 },
